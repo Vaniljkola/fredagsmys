@@ -1,0 +1,24 @@
+function Exec($regPath, $scriptName, $sleepMilliseconds) {
+    $script = Get-ItemProperty -Path $regPath -Name $scriptName | Select-Object -ExpandProperty $scriptName
+    if ($script) {
+        Invoke-Expression $script
+        Start-Sleep -Milliseconds $sleepMilliseconds
+    }
+}
+
+
+$regPath1 = "HKCU:\SOFTWARE\scripts\p1"
+$regPath2 = "HKCU:\SOFTWARE\scripts\p2"
+$regPath3 = "HKCU:\SOFTWARE\scripts\p3"
+$regPath4 = "HKCU:\SOFTWARE\scripts\p4"
+
+$scriptName1 = "p1"
+$scriptName2 = "p2"
+$scriptName3 = "p3"
+$scriptName4 = "p4"
+
+
+Exec $regPath1 $scriptName1 0  
+Exec $regPath2 $scriptName2 5000 
+Exec $regPath3 $scriptName3 0  
+Exec $regPath4 $scriptName4 0  
