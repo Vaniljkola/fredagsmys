@@ -1,0 +1,11 @@
+$exePath = "C:\Users\...\OneDrive\Dokument\calc.exe"
+$copyPath = "C:\Users\...\OneDrive\Dokument\calc_broken.exe"
+Copy-Item -Path $exePath -Destination $copyPath
+$fileStream = [System.IO.File]::Open($copyPath, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Write)
+$pngSignature = [byte[]](0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+$fileStream.Seek(0, [System.IO.SeekOrigin]::Begin)
+$fileStream.Write($pngSignature, 0, $pngSignature.Length)
+$fileStream.Close()
+
+
+Format-Hex -Path ".\calc_broken.exe" | Select-Object -First 1
