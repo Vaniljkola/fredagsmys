@@ -2,8 +2,8 @@ import os
 import sqlite3
 
 # Security Flaw 1: Hardcoded credentials (Bad practice)
-USERNAME = "admin"
-PASSWORD = "password123"
+USERNAME = "administrator"
+PASSWORD = "Spring2025"
 
 def login():
     user = input("Enter username: ")
