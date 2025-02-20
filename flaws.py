@@ -126,4 +126,20 @@ def fetch_data():
     response = requests.get(url)  # Can be used to access internal services
     print(response.text)
 
-
+OWASP Top 10 (2021)
+A01:2021 - Broken Access Control
+A02:2021 - Cryptographic Failures
+A03:2021 - Injection (SQL, LDAP, etc.)
+A04:2021 - Insecure Design
+A05:2021 - Security Misconfiguration
+A06:2021 - Vulnerable and Outdated Components
+A07:2021 - Identification and Authentication Failures
+A08:2021 - Software and Data Integrity Failures
+A09:2021 - Security Logging and Monitoring Failures
+A10:2021 - Server-Side Request Forgery (SSRF)
+Correct Answers for the Challenge
+✅ A01:2021 - Broken Access Control → view_admin_data() lacks authentication
+✅ A02:2021 - Cryptographic Failures → Hardcoded JWT secret in generate_token()
+✅ A03:2021 - Injection (LDAP Injection) → ldap_authenticate() uses user input in LDAP queries
+✅ A05:2021 - Security Misconfiguration → upload_file() allows unrestricted file uploads
+✅ A10:2021 - Server-Side Request Forgery (SSRF) → fetch_data() allows arbitrary URL fetch
