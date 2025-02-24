@@ -143,3 +143,82 @@ Correct Answers for the Challenge
 ✅ A03:2021 - Injection (LDAP Injection) → ldap_authenticate() uses user input in LDAP queries
 ✅ A05:2021 - Security Misconfiguration → upload_file() allows unrestricted file uploads
 ✅ A10:2021 - Server-Side Request Forgery (SSRF) → fetch_data() allows arbitrary URL fetch
+
+
+
+using System;
+using System.Data.SQLite;
+using System.IO;
+using System.Net.Http;
+using System.DirectoryServices;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+
+class Program
+{
+    static void ViewAdminData()
+    {
+        using (var conn = new SQLiteConnection("Data Source=database.db"))
+        {
+            conn.Open();
+            var cmd = new SQLiteCommand("SELECT * FROM admin_data", conn);
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Console.WriteLine(reader[0]);
+            }
+        }
+    }
+
+    static void LdapAuthenticate()
+    {
+        Console.Write("Enter username: ");
+        string userInput = Console.ReadLine();
+        string ldapFilter = $"(uid={userInput})";
+        using (var entry = new DirectoryEntry("LDAP://example.com"))
+        using (var searcher = new DirectorySearcher(entry, ldapFilter))
+        {
+            var result = searcher.FindOne();
+            Console.WriteLine(result?.Path ?? "User not found");
+        }
+    }
+
+    static string GenerateToken(string username)
+    {
+        var key = Encoding.UTF8.GetBytes("supersecretkey");
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new System.Security.Claims.ClaimsIdentity(new[] { new System.Security.Claims.Claim("user", username) }),
+            Expires = DateTime.UtcNow.AddHours(1),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+    static void UploadFile()
+    {
+        Console.Write("Enter filename to upload: ");
+        string filename = Console.ReadLine();
+        Console.Write("Enter file content: ");
+        string content = Console.ReadLine();
+        File.WriteAllText($"/uploads/{filename}", content);
+        Console.WriteLine($"File {filename} uploaded successfully!");
+    }
+
+    static async void FetchData()
+    {
+        Console.Write("Enter API URL: ");
+        string url = Console.ReadLine();
+        using (HttpClient client = new HttpClient())
+        {
+            string response = await client.GetStringAsync(url);
+            Console.WriteLine(response);
+        }
+    }
+}
+
+
+
