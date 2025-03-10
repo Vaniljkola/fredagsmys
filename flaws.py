@@ -222,3 +222,23 @@ class Program
 
 
 
+A01: Broken Access Control	
+CWE-285	Improper Authorization
+CWE-200	Exposure of Sensitive Information
+
+A02: Cryptographic Failures	CWE-798	Hard-coded Credentials (JWT secret)
+CWE-312	Cleartext Storage of Sensitive Information
+CWE-327	Weak Cryptographic Algorithm (HMAC instead of RSA/ECDSA)
+CWE-613	Insufficient Session Expiration
+
+A03: Injection	CWE-90	LDAP Injection
+CWE-20	Improper Input Validation
+
+A04: Insecure Design	
+CWE-522	Insufficiently Protected Credentials
+CWE-602	Client-Side Enforcement of Server-Side Security
+CWE-657	Violation of Secure Design Principles
+
+A10: Server-Side Request Forgery	
+CWE-918	SSRF
+CWE-610	External Resource Control
