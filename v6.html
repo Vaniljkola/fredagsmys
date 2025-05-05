@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cyberquiz</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      flex-direction: column;
+    }
+
+    h2 {
+      margin: 0;
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .container {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    .card h3 {
+      margin: 0 0 1rem;
+      text-align: center;
+    }
+
+    .question {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background: var(--question-bg);
+      transition: background 0.3s;
+    }
+
+    .question:hover {
+      background: var(--question-hover);
+    }
+
+    .question.answered {
+      background: var(--answered-bg);
+      color: var(--answered-color);
+      cursor: default;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #43a047;
+    }
+
+    dialog {
+      padding: 2rem;
+      border: none;
+      border-radius: 1rem;
+      background: var(--card-bg);
+      color: inherit;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    body.light {
+      --card-bg: #ffffff;
+      --question-bg: #f0f0f0;
+      --question-hover: #e0e0e0;
+      --answered-bg: #ccc;
+      --answered-color: #666;
+      background: #fafafa;
+      color: #111;
+    }
+
+    body.dark {
+      --card-bg: #1e1e2f;
+      --question-bg: #2c2c3e;
+      --question-hover: #3a3a4e;
+      --answered-bg: #444;
+      --answered-color: #aaa;
+      background: #121212;
+      color: #f0f0f0;
+    }
+
+    @keyframes rainbow {
+      0% { color: red; }
+      16% { color: orange; }
+      33% { color: yellow; }
+      50% { color: green; }
+      66% { color: blue; }
+      83% { color: indigo; }
+      100% { color: violet; }
+    }
+
+    h2 {
+      margin: 0;
+      animation: rainbow 5s linear infinite;
+      font-size: 2.5rem;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h2>Vad är cybersäkerhet?</h2>
+    <div>
+      <button onclick="resetProgress()">Återställ</button>
+      <span class="theme-toggle" onclick="toggleTheme()" title="Byt tema">🌙</span>
+    </div>
+  </div>
+
+  <div class="container" id="quiz-container"></div>
+
+  <dialog id="questionDialog">
+    <h3 id="questionText"></h3>
+    <div id="answerSection" style="display:none; margin-top:1rem;">
+      <strong>Svar:</strong>
+      <p id="answerText"></p>
+    </div>
+    <button id="showAnswerBtn" onclick="showAnswer()">Visa svar</button>
+    <button onclick="closeDialog()">Stäng</button>
+  </dialog>
+
+  <script>
+    const questions = [
+      { category: "Kodning", level: 1, Fråga: "What does '#' do in Python?", Svar: "Kommentar" },
+      { category: "Kodning", level: 2, Fråga: "Vilket nyckelord definierar en funktion i Python?", Svar: "def" },
+      { category: "Kodning", level: 3, Fråga: "Vad är en lambda-funktion?", Svar: "Anonym funktion" },
+
+      { category: "Webbsäkerhet", level: 1, Fråga: "Vad står HTTPS för?", Svar: "Hypertext Transfer Protocol Secure" },
+      { category: "Webbsäkerhet", level: 2, Fråga: "Vilket OWASP-problem innebär att man injicerar SQL i ett formulärfält?", Svar: "SQL Injection" },
+      { category: "Webbsäkerhet", level: 3, Fråga: "Vad är ett CSRF-token till för?", Svar: "Skyddar mot förfalskade förfrågningar" },
+
+      { category: "Kända attacker", level: 1, Fråga: "Vilket företag blev hackat 2013 – 3 miljarder konton påverkades?", Svar: "Yahoo" },
+      { category: "Kända attacker", level: 2, Fråga: "Vilken ransomware stängde ner Colonial Pipeline 2021?", Svar: "DarkSide" },
+      { category: "Kända attacker", level: 3, Fråga: "Vilket spionverktyg kopplas till NSO Group?", Svar: "Pegasus" },
+
+      { category: "OS-säkerhet", level: 1, Fråga: "Vad står UAC för i Windows?", Svar: "User Account Control" },
+      { category: "OS-säkerhet", level: 2, Fråga: "Vilken Linuxfil innehåller lösenordshashar?", Svar: "/etc/shadow" },
+      { category: "OS-säkerhet", level: 3, Fråga: "Vad betyder principen om minsta privilegium?", Svar: "Minsta möjliga behörighet" },
+
+      { category: "E-postsäkerhet", level: 1, Fråga: "Vad hjälper SPF till att förhindra?", Svar: "Spoofade e-postmeddelanden" },
+      { category: "E-postsäkerhet", level: 2, Fråga: "Vilket protokoll lägger till en digital signatur i e-posthuvuden?", Svar: "DKIM" },
+      { category: "E-postsäkerhet", level: 3, Fråga: "Vad används DMARC-policyn till?", Svar: "Bestämma hur spoofade mail hanteras" }
+    ];
+
+    const container = document.getElementById('quiz-container');
+    const dialog = document.getElementById('questionDialog');
+    const questionText = document.getElementById('questionText');
+    const answerText = document.getElementById('answerText');
+    const answerSection = document.getElementById('answerSection');
+    const showAnswerBtn = document.getElementById('showAnswerBtn');
+
+    let answered = new Set();
+    const categories = [...new Set(questions.map(q => q.category))];
+
+    function buildUI() {
+      container.innerHTML = '';
+      categories.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<h3>${cat}</h3>`;
+
+        [1, 2, 3].forEach(level => {
+          const q = questions.find(q => q.category === cat && q.level === level);
+          const btn = document.createElement('div');
+          btn.className = 'question';
+          const key = cat + level;
+          if (answered.has(key)) btn.classList.add('answered');
+          btn.innerText = `Nivå ${level}`;
+          btn.onclick = () => {
+            if (answered.has(key)) return;
+            questionText.textContent = q.Fråga;
+            answerText.textContent = q.Svar;
+            answerSection.style.display = 'none';
+            showAnswerBtn.style.display = 'inline-block';
+            dialog.showModal();
+            answered.add(key);
+            btn.classList.add('answered');
+            saveProgress();
+          };
+          card.appendChild(btn);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function closeDialog() {
+      dialog.close();
+    }
+
+    function showAnswer() {
+      answerSection.style.display = 'block';
+      showAnswerBtn.style.display = 'none';
+    }
+
+    function resetProgress() {
+      localStorage.removeItem('answered');
+      answered.clear();
+      buildUI();
+    }
+
+    function saveProgress() {
+      localStorage.setItem('answered', JSON.stringify([...answered]));
+    }
+
+    function loadProgress() {
+      const stored = localStorage.getItem('answered');
+      if (stored) {
+        answered = new Set(JSON.parse(stored));
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.body.classList.contains('dark') ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.body.classList.remove(current);
+      document.body.classList.add(next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const icon = document.querySelector('.theme-toggle');
+      icon.textContent = document.body.classList.contains('dark') ? '🌙' : '🌞';
+    }
+
+    function loadTheme() {
+      const stored = localStorage.getItem('theme') || 'light';
+      document.body.classList.add(stored);
+      updateThemeIcon();
+    }
+
+    loadTheme();
+    loadProgress();
+    buildUI();
+  </script>
+</body>
+</html>
